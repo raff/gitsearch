@@ -196,6 +196,7 @@ func main() {
 	format := flag.String("format", "text", "output format (text or html)")
 	browse := flag.Bool("browse", false, "if format=html, open browser")
 	listOrgs := flag.Bool("orgs", false, "list all organizations")
+	ignoreCase := flag.Bool("ignore-case", false, "case insensitive search")
 	flag.Parse()
 
 	ttemplate := templates[*format]
@@ -287,6 +288,15 @@ func main() {
 
 	repos := map[string]*matchRepo{}
 
+	stringContains := func(s, q string) bool {
+		if *ignoreCase {
+			s = strings.ToLower(s)
+			q = strings.ToLower(q)
+		}
+
+		return strings.Contains(s, q)
+	}
+
 	for {
 		if *verbose {
 			log.Println(">>> Page", opts.Page)
@@ -327,7 +337,7 @@ func main() {
 
 			for _, m := range r.TextMatches {
 				frag := m.GetFragment()
-				if *all || strings.Contains(frag, q) {
+				if *all || stringContains(frag, q) {
 					file.Matches = append(file.Matches, frag)
 				}
 			}
