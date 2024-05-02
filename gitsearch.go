@@ -66,6 +66,13 @@ var templates = map[string]string{
     margin-left: 20px;
   }
 
+  .repo {
+    background-color: #f0e0f0;
+    padding-left: 6px;
+    padding-top: 1px;
+    border-bottom: 4px solid #ffffff;
+  }
+
   .file {
     background-color: #e0e0e0;
     padding: 1px;
