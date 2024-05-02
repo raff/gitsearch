@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
@@ -19,7 +20,6 @@ import (
 	"github.com/gobs/httpclient"
 	"github.com/gobs/sortedmap"
 	"github.com/google/go-github/github"
-	"golang.org/x/oauth2"
 )
 
 var templates = map[string]string{
@@ -223,26 +223,27 @@ func main() {
 		textMatch = fmt.Sprintf("#:~:text=%v", url.QueryEscape(q))
 	}
 
-	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: *token})
-	tc := oauth2.NewClient(ctx, ts)
+	var httpClient *http.Client
 
 	if *debug {
-		tc.Transport = httpclient.LoggedTransport(tc.Transport, true, true, false)
+		httpClient = &http.Client{
+			Transport: httpclient.LoggedTransport(httpclient.DefaultTransport, true, true, false),
+		}
 	}
 
-	// https://github.com
-	client := github.NewClient(tc)
+	client := github.NewClient(httpClient).WithAuthToken(*token)
 
 	if *server != "" {
 		// GitHub enterprise
-		eclient, err := github.NewEnterpriseClient(*server, "", tc)
+		eclient, err := client.WithEnterpriseURLs(*server, "")
 		if err != nil {
 			log.Fatal("Client: ", err)
 		}
 
 		client = eclient
 	}
+
+	ctx := context.Background()
 
 	if *listOrgs {
 		var opts github.OrganizationsListOptions
